@@ -1,0 +1,17 @@
+{
+  "name": "Study Track",
+  "short_name": "Study Track",
+  "description": "Assistant d'apprentissage personnalisé avec IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1E3A5F",
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+/* ===== STUDY TRACK - THÈMES VISUELS ===== */
+
+/* Palette de couleurs basée sur le logo */
+:root {
+    --logo-navy: #1E3A5F;
+    --logo-navy-light: #2E4A6F;
+    --logo-navy-dark: #0E2A4F;
+    
+    /* Mise à jour des couleurs principales */
+    --primary: #1E3A5F;
+    --primary-dark: #0E2A4F;
+    --primary-light: #2E4A6F;
+}
+
+/* Gestion des logos selon le thème */
+.logo, .login-logo {
+    content: url('/assets/logo-light.png');
+}
+
+[data-theme="dark"] .logo,
+[data-theme="dark"] .login-logo {
+    content: url('/assets/logo-dark.png');
+}
+
+/* Mode sombre - couleurs adaptées */
+[data-theme="dark"] {
+    --bg-primary: #1A1D23;
+    --bg-secondary: #22252D;
+    --bg-tertiary: #2A2E38;
+    --text-primary: #E9ECEF;
+    --text-secondary: #ADB5BD;
+    --text-tertiary: #6C757D;
+    --border-color: #3A3E48;
+}
+
+/* Animation de transition du thème */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

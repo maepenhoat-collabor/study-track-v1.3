@@ -1,0 +1,68 @@
+/* ===== INTERFACE CAMÉRA ===== */
+.camera-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-container.active {
+    display: flex;
+}
+
+.camera-video {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: var(--border-radius);
+}
+
+.camera-controls {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    gap: var(--spacing-lg);
+}
+
+.camera-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background-color: var(--primary);
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.camera-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.camera-btn.capture {
+    background-color: #FF6B6B;
+}
+
+.camera-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    opacity: 0;
+    pointer-events: none;
+    animation: camera-flash 0.3s;
+}
+
+@keyframes camera-flash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}

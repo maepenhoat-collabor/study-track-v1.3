@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Track - Connexion</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2E4A6F 100%);
+        }
+        .login-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            animation: scaleIn 0.4s ease;
+        }
+        .logo {
+            width: 200px;
+            height: auto;
+            margin: 0 auto 2rem;
+            display: block;
+        }
+        .error-message {
+            background: #ff6b6b20;
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+            animation: shake 0.5s;
+        }
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="/assets/logo-light.png" alt="Study Track" class="logo">
+        <h1 style="text-align:center; color: #1E3A5F; margin-bottom: 2rem;">Connexion</h1>
+        
+        <div id="errorMessage" class="error-message"></div>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <label class="input-label">Identifiant EcoleDirecte</label>
+                <input type="text" id="username" class="input-field" required>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Mot de passe</label>
+                <input type="password" id="password" class="input-field" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+                <span id="btnText">Se connecter</span>
+                <div id="btnSpinner" class="spinner" style="display:none; margin-left:auto;"></div>
+            </button>
+        </form>
+    </div>
+
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const errorMsg = document.getElementById('errorMessage');
+        
+        btnText.textContent = 'Connexion...';
+        btnSpinner.style.display = 'block';
+        errorMsg.classList.remove('show');
+        
+        try {
+            const response = await fetch('/api/ecoledirecte/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('firstName', data.firstName);
+                localStorage.setItem('class', data.class);
+                localStorage.setItem('studentId', data.studentId);
+                window.location.href = '/dashboard.html';
+            } else {
+                errorMsg.textContent = 'Identifiants incorrects';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            errorMsg.textContent = 'Erreur de connexion';
+            errorMsg.classList.add('show');
+        } finally {
+            btnText.textContent = 'Se connecter';
+            btnSpinner.style.display = 'none';
+        }
+    });
+    
+    // Auto-redirect si déjà connecté
+    if (localStorage.getItem('token')) {
+        window.location.href = '/dashboard.html';
+    }
+    </script>
+</body>
+</html>

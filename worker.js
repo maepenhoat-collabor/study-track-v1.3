@@ -1,0 +1,110 @@
+// Study Track - Backend Cloudflare Worker
+const API_KEYS = {
+  GROQ: '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',
+  YOUTUBE: 'AIzaSyCSbaes4hu8JTOE3aJvCvTOq_781gyb4B4',
+  NEWS: 'eb486deecba34942856f6508af6c1d40',
+  WOLFRAM: 'G4X8785379'
+};
+
+const ECOLEDIRECTE_API = 'https://api.ecoledirecte.com/v3';
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    
+    // CORS headers
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+    
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+    
+    // Routes API
+    if (url.pathname.startsWith('/api/')) {
+      try {
+        // EcoleDirecte Login
+        if (url.pathname === '/api/ecoledirecte/login') {
+          const { username, password } = await request.json();
+          const response = await fetch(`${ECOLEDIRECTE_API}/login.awp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `data=${JSON.stringify({ identifiant: username, motdepasse: password })}`
+          });
+          const data = await response.json();
+          
+          if (data.code === 200) {
+            return new Response(JSON.stringify({
+              success: true,
+              token: data.token,
+              firstName: data.data.accounts[0].prenom,
+              class: data.data.accounts[0].profile?.classe?.libelle || 'N/A',
+              studentId: data.data.accounts[0].id
+            }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+          
+          return new Response(JSON.stringify({ success: false, error: 'Identifiants incorrects' }), 
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        
+        // My Study Chat avec Groq
+        if (url.pathname === '/api/mystudy/chat') {
+          const { messages, firstName, context } = await request.json();
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${API_KEYS.GROQ}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'mixtral-8x7b-32768',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: `Tu es My Study, l'assistant IA de ${firstName}. Tu es amical, encourageant et pédagogique. Utilise toujours le prénom ${firstName} dans tes réponses.`
+                },
+                ...messages
+              ],
+              temperature: 0.7,
+              max_tokens: 2000
+            })
+          });
+          
+          const data = await response.json();
+          return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        
+        // YouTube Search
+        if (url.pathname === '/api/youtube/search') {
+          const { query, maxResults = 5 } = await request.json();
+          const ytUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=${maxResults}&key=${API_KEYS.YOUTUBE}`;
+          const response = await fetch(ytUrl);
+          const data = await response.json();
+          return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        
+        // News API
+        if (url.pathname === '/api/news/fetch') {
+          const { category = 'general', country = 'fr' } = await request.json();
+          const newsUrl = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${API_KEYS.NEWS}`;
+          const response = await fetch(newsUrl);
+          const data = await response.json();
+          return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        
+        return new Response(JSON.stringify({ error: 'Route non trouvée' }), 
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+    
+    // Servir les fichiers statiques
+    return env.ASSETS.fetch(request);
+  }
+};
